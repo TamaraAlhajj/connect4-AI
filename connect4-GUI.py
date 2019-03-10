@@ -11,12 +11,14 @@ GREEN = (31, 140, 90)
 ROWS = 6
 COLS = 7
 
+
 def remove_bottom_peg(board, col):
     top = get_open_row(board, col)
     shift = np.copy(board[1:, col])
     board[0:ROWS-1, col] = shift
     # edge case handler
-    board[ROWS-1, col] = 0 
+    board[ROWS-1, col] = 0
+
 
 def check_win(board, player):
 
@@ -45,21 +47,25 @@ def check_win(board, player):
                 if(board[r][c] == player and board[r-1][c+1] == player and board[r-2][c+2] == player and board[r-3][c+3] == player):
                     return True
             except IndexError:
-                    continue
+                continue
     # ur not the weiner
     return False
 
+
 def get_open_row(board, col):
     for row in range(ROWS):
-        if(board[row,col] == 0):
+        if(board[row, col] == 0):
             return row
 
+
 def valid_move(board, col):
-	return board[ROWS-1][col] == 0
+    return board[ROWS-1][col] == 0
+
 
 def make_move(board, row, col, player):
     # player is 1 or 2
     board[row][col] = player
+
 
 def print_board(board):
     # CMD output
@@ -68,31 +74,32 @@ def print_board(board):
 
 
 def draw_board(board):
-    
-    # build empty board
     for c in range(COLS):
         for r in range(ROWS):
-            pygame.draw.rect(screen, BLUE, (c*SQUARE, r*SQUARE, SQUARE, SQUARE))
-            pygame.draw.circle(screen, BLACK, (int(c*SQUARE+SQUARE/2), int(r*SQUARE+SQUARE/2)), RADIUS)
+            pygame.draw.rect(screen, BLUE, (c*SQUARE, r *
+                                            SQUARE+SQUARE, SQUARE, SQUARE))
+            pygame.draw.circle(
+                screen, BLACK, (int(c*SQUARE+SQUARE/2), int(r*SQUARE+SQUARE+SQUARE/2)), RADIUS)
 
-    # place pegs in correct position
-    ## subract from height to flip board
-    for c in range(COLS):
-        for r in range(ROWS):		
-            if board[r][c] == 1:
-                pygame.draw.circle(screen, RED, (int(c*SQUARE+SQUARE/2), height-int(r*SQUARE+SQUARE/2)), RADIUS)
-            elif board[r][c] == 2: 
-                pygame.draw.circle(screen, YELLOW, (int(c*SQUARE+SQUARE/2), height-int(r*SQUARE+SQUARE/2)), RADIUS)
-    pygame.display.update()
+        for c in range(COLS):
+            for r in range(ROWS):
+                if board[r][c] == 1:
+                    pygame.draw.circle(
+                        screen, RED, (int(c*SQUARE+SQUARE/2), height-int(r*SQUARE+SQUARE/2)), RADIUS)
+                elif board[r][c] == 2:
+                    pygame.draw.circle(screen, YELLOW, (int(
+                        c*SQUARE+SQUARE/2), height-int(r*SQUARE+SQUARE/2)), RADIUS)
+        pygame.display.update()
 
-board = np.zeros((ROWS,COLS))
-option_to_remove = False # default to conventional connect-4 game
+
+board = np.zeros((ROWS, COLS))
+option_to_remove = False  # default to conventional connect-4 game
 running = True
-turn = False # binary track of turn starting with Player 1
+turn = False  # binary track of turn starting with Player 1
 
 pygame.init()
 
-SQUARE = 100 #px
+SQUARE = 100  # px
 RADIUS = int(SQUARE/2 - 5)
 
 width = COLS * SQUARE
@@ -124,7 +131,8 @@ while running:
                 move = x // SQUARE
 
                 if(board[0][move] == 1 and option_to_remove):
-                    move_type = int(input("Would you like to drop a peg here or remove your bottom peg? 1 or 2: "))
+                    move_type = int(
+                        input("Would you like to drop a peg here or remove your bottom peg? 1 or 2: "))
                     if(move_type == 2):
                         remove_bottom_peg(board, move)
                         print_board(board)
@@ -133,8 +141,9 @@ while running:
                             row = get_open_row(board, move)
                             make_move(board, row, move, 1)
                             if(check_win(board, 1)):
-                                label = font.render("P1 wins! P2 ur a sucka", 1, RED)
-                                screen.blit(label, (40,10))
+                                label = font.render(
+                                    "P1 wins! P2 ur a sucka", 1, RED)
+                                screen.blit(label, (40, 10))
                                 running = False
                         else:
                             print("invalid move, you loss your turn")
@@ -143,8 +152,9 @@ while running:
                         row = get_open_row(board, move)
                         make_move(board, row, move, 1)
                         if(check_win(board, 1)):
-                            label = font.render("P1 wins! P2 ur a sucka", 1, RED)
-                            screen.blit(label, (40,10))
+                            label = font.render(
+                                "P1 wins! P2 ur a sucka", 1, RED)
+                            screen.blit(label, (40, 10))
                             running = False
                     else:
                         print("invalid move, you loss your turn")
@@ -154,7 +164,8 @@ while running:
                 move = x // SQUARE
 
                 if(board[0][move] == 2 and option_to_remove):
-                    move_type = int(input("Would you like to drop a peg here or remove your bottom peg? 1 or 2: "))
+                    move_type = int(
+                        input("Would you like to drop a peg here or remove your bottom peg? 1 or 2: "))
                     if(move_type == 2):
                         remove_bottom_peg(board, move)
                     else:
@@ -162,8 +173,9 @@ while running:
                             row = get_open_row(board, move)
                             make_move(board, row, move, 2)
                             if(check_win(board, 2)):
-                                label = font.render("P2 wins! P1 ur a sucka", 1, YELLOW)
-                                screen.blit(label, (40,10))
+                                label = font.render(
+                                    "P2 wins! P1 ur a sucka", 1, YELLOW)
+                                screen.blit(label, (40, 10))
                                 running = False
                         else:
                             print("invalid move, you loss your turn")
@@ -173,8 +185,9 @@ while running:
                         row = get_open_row(board, move)
                         make_move(board, row, move, 2)
                         if(check_win(board, 2)):
-                            label = font.render("P2 wins! P1 ur a sucka", 1, YELLOW)
-                            screen.blit(label, (40,10))
+                            label = font.render(
+                                "P2 wins! P1 ur a sucka", 1, YELLOW)
+                            screen.blit(label, (40, 10))
                             running = False
                     else:
                         print("invalid move, you loss your turn")
@@ -182,7 +195,7 @@ while running:
             draw_board(board)
             turn = not turn
             if(not running):
-                screen.blit(label, (40,10))
+                screen.blit(label, (40, 10))
                 pygame.time.wait(5000)
 
 pygame.quit()  # quits pygame

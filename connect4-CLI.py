@@ -99,9 +99,7 @@ while running:
                     else:
                         print("invalid move, you loss your turn")
             else:
-                #move = int(input("Player 2, make your move (0-6): "))
-                x = event.pos[0]
-                move = x // SQUARE
+                move = int(input("Player 2, make your move (0-6): "))
 
                 if(board[0][move] == 2 and option_to_remove):
                     move_type = int(input("Would you like to drop a peg here or remove your bottom peg? 1 or 2: "))
