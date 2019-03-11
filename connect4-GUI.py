@@ -8,7 +8,7 @@ BLUE = (34, 108, 224)
 BLACK = (27, 23, 37)
 GREEN = (31, 140, 90)
 
-ROWS = 6
+ROWS = 7 # extra top row
 COLS = 7
 
 
@@ -59,7 +59,7 @@ def get_open_row(board, col):
 
 
 def valid_move(board, col):
-    return board[ROWS-1][col] == 0
+    return board[ROWS-2][col] == 0
 
 
 def make_move(board, row, col, player):
@@ -111,9 +111,9 @@ screen = pygame.display.set_mode(size)
 draw_board(board)
 pygame.display.update()
 
-font = pygame.font.SysFont("monospace", 75)
+font = pygame.font.SysFont("ariel", 75)
 
-""" option = input("Would you like to play with the option to remove pegs? y/n: ")
+""" option = input("Option to remove pegs? y/n: ")
 if(option.upper() == 'Y'):
     option_to_remove = True """
 
@@ -126,7 +126,6 @@ while running:
         if(event.type == pygame.MOUSEBUTTONDOWN):
 
             if(not turn):
-                #move = int(input("Player 1, make your move (0-6): "))
                 x = event.pos[0]
                 move = x // SQUARE
 
@@ -142,24 +141,25 @@ while running:
                             make_move(board, row, move, 1)
                             if(check_win(board, 1)):
                                 label = font.render(
-                                    "P1 wins! P2 ur a sucka", 1, RED)
+                                    "Player 1 wins! GG", 1, RED)
                                 screen.blit(label, (40, 10))
                                 running = False
                         else:
-                            print("invalid move, you loss your turn")
+                            #label = font.render("invalid move, miss a turn", 1, RED)
+                            #screen.blit(label, (40, 10))
                 else:
                     if(valid_move(board, move)):
                         row = get_open_row(board, move)
                         make_move(board, row, move, 1)
                         if(check_win(board, 1)):
                             label = font.render(
-                                "P1 wins! P2 ur a sucka", 1, RED)
+                                "Player 1 wins! GG", 1, RED)
                             screen.blit(label, (40, 10))
                             running = False
                     else:
-                        print("invalid move, you loss your turn")
+                        #label = font.render("invalid move, miss a turn", 1, RED)
+                        #screen.blit(label, (40, 10))
             else:
-                #move = int(input("Player 2, make your move (0-6): "))
                 x = event.pos[0]
                 move = x // SQUARE
 
@@ -174,11 +174,12 @@ while running:
                             make_move(board, row, move, 2)
                             if(check_win(board, 2)):
                                 label = font.render(
-                                    "P2 wins! P1 ur a sucka", 1, YELLOW)
+                                    "Player 2 wins! GG", 1, YELLOW)
                                 screen.blit(label, (40, 10))
                                 running = False
                         else:
-                            print("invalid move, you loss your turn")
+                            #label = font.render("invalid move, miss a turn", 1, YELLOW)
+                            #screen.blit(label, (40, 10))
 
                 else:
                     if(valid_move(board, move)):
@@ -186,11 +187,14 @@ while running:
                         make_move(board, row, move, 2)
                         if(check_win(board, 2)):
                             label = font.render(
-                                "P2 wins! P1 ur a sucka", 1, YELLOW)
+                                "Player 2 wins! GG", 1, YELLOW)
                             screen.blit(label, (40, 10))
                             running = False
                     else:
-                        print("invalid move, you loss your turn")
+                        #label = font.render("invalid move, miss a turn", 1, YELLOW)
+                        #screen.blit(label, (40, 10))
+
+
             print_board(board)
             draw_board(board)
             turn = not turn
