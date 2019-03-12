@@ -581,7 +581,6 @@ if not bad_setup:
 
     # COMP VS COMP #
     elif comp_vs_comp_perf:
-        #global h1
         while not game_over:
 
             for event in pygame.event.get():
@@ -595,7 +594,7 @@ if not bad_setup:
             elif turn == PLAYER:
                 h1 = True
                 col, minimax_score = minimax(
-                    board, 5, -np.inf, np.inf, True)
+                    board, 5, -np.inf, np.inf, False)
 
                 if is_valid_location(board, col):
 
