@@ -34,6 +34,7 @@ If you choose to watch the smart AIs play against each other, please note that p
 This is a two player game with minimax AI using alpha beta pruning.
 The state space is a 2D numpy matrix, with dimensions 6 by 7. These are the conventional dimensions of a connect 4 game.
 I setup a random turn start so that any player has the chance to start first.
+
 Although playing first does give a theoretical advantage, the smart AI seems unbeatable by any player, human or otherwise.
 The only case where I noticed the advantage of starting first was when I tested 2 smart AIs against each other.
 This ultimately gave favour to the beginning player.
@@ -48,10 +49,12 @@ As for removing nodes, the smart AI never does so, which I assume is because it 
 The other AIs remove valid pegs at random, for some fun game play.
 For the AI it was too costly to check with removal capabilities at each level, so I have them just handle the *threat* of removal, which works quite well.
 
-The number of nodes searched were consistently in the thousands. This is due to the fact that node expansion is based on the production system and the depth of the alpha-beta search.
+The number of nodes searched were consistently in the thousands. This is due to the fact that node expansion is based on the production system and the depth of the alpha-beta search. However, without alpha beta pruning, it searched between 80 thousand and 100000 nodes, depending on the AI mode. So the pruning indeed had a profound effect on the runtime.
+
 Currently, the depth is bound at 5 levels. However, with a lower cut off, say 3, the number of nodes searched were in the hundreds.
 Moreover, when the Average AI is playing with the Smart AI, they *both* use the alpha-beta search so this can magnify the number of nodes searched to the tens of thousands.
-Amazingly, yet understandably, when both smart AIs play the nodes searched can reach 64505! Even more
+Amazingly, yet understandably, when both smart AIs play the nodes searched can still reach 64505 with the pruning.
+
 As for the heuristics, the number of nodes searched seem to be more for defence due to tendency to block rather than win quick, however it is hard to make a direct comparison with so many game play possibilities.
 
 ## Improvements

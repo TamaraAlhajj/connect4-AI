@@ -592,7 +592,7 @@ if not bad_setup:
                 game_over = True
 
             elif turn == PLAYER:
-                h1 = True
+                h1 = not h1
                 col, minimax_score = minimax(
                     board, 5, -np.inf, np.inf, False)
 
@@ -613,7 +613,6 @@ if not bad_setup:
                     turn = turn % 2
 
             if turn == AI and not game_over:
-                h1 = False
                 col, minimax_score = minimax(
                     board, 5, -np.inf, np.inf, True)
 
