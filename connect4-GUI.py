@@ -16,7 +16,7 @@ COLUMN_COUNT = 7
 
 PLAYER = 0
 AI = 1
-turn = PLAYER
+turn = random.randint(0, 1)
 
 EMPTY = 0
 PLAYER_PIECE = 1
@@ -35,24 +35,34 @@ RADIUS = int(SQUARESIZE/2 - 5)
 
 option_to_remove = True
 comp_vs_comp = False
+easy = False
 h1 = True
 game_over = False
 board = np.zeros((ROW_COUNT, COLUMN_COUNT))
+nodes_searched = 0
 
 #### SETUP ####
 
-game_type = int(input("How many AIs? Type 1 or 2: "))
+print("_"*30)
+print("-"*8 + "Connect-4 Menu" + "-"*8)
+print("_"*30)
+
+game_type = int(input("\nHow many AIs? 1 or 2: "))
 if game_type == 2:
     comp_vs_comp = True
-
-option = input(
-    "Type no if you don't want the option to remove, else any key: ")
-if option_to_remove == "no":
-    option_to_remove = False
+    game_type = int(
+        input("Do you want the smart AI to play a dumb (1) or avg AI (2)? "))
+    if game_type == 1:
+        easy = True
 
 heuristic = int(input("Offensive (1) or defensive (2) heuristic? "))
 if heuristic == 2:
     h1 == False
+
+option = input("Option to remove? Type no, else any key: ")
+if option_to_remove == "no":
+    option_to_remove = False
+
 
 #### GAME FUNCTIONS ####
 
@@ -237,6 +247,7 @@ def is_terminal_node(board):
 
 
 def minimax(board, depth, alpha, beta, maximizingPlayer):
+    global nodes_searched
     valid_locations = get_valid_locations(board)
     is_terminal = is_terminal_node(board)
 
@@ -259,6 +270,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
             row = get_next_open_row(board, col)
             b_copy = board.copy()
             drop_piece(b_copy, row, col, AI_PIECE)
+            nodes_searched += 1
             new_score = minimax(b_copy, depth-1, alpha, beta, False)[1]
 
             if new_score > value:
@@ -267,6 +279,8 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
             alpha = max(alpha, value)
 
             if alpha >= beta:
+                # Beta cutoff
+                # Killer heuristic can be implemented here
                 break
 
         return column, value
@@ -287,28 +301,10 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
             beta = min(beta, value)
 
             if alpha >= beta:
+                # alpha cutoff
                 break
 
         return column, value
-
-
-def pick_best_move(board, piece):
-
-    valid_locations = get_valid_locations(board)
-    best_score = -10000
-    best_col = random.choice(valid_locations)
-
-    for col in valid_locations:
-        row = get_next_open_row(board, col)
-        temp_board = board.copy()
-        drop_piece(temp_board, row, col, piece)
-        score = score_position(temp_board, piece)
-
-        if score > best_score:
-            best_score = score
-            best_col = col
-
-    return best_col
 
 
 #### PYGAME SETUP ####
@@ -365,7 +361,8 @@ if not comp_vs_comp:
                             draw_board(board)
 
                     elif event.key == pygame.K_a:
-                        pygame.draw.rect(screen, BLACK, (0, 0, width, SQUARESIZE))
+                        pygame.draw.rect(
+                            screen, BLACK, (0, 0, width, SQUARESIZE))
 
                         posx = event.pos[0]
                         col = int(math.floor(posx/SQUARESIZE))
@@ -410,7 +407,7 @@ if not comp_vs_comp:
             pygame.time.wait(3000)
 
 # COMP VS COMP #
-else:
+if comp_vs_comp and easy:
     while not game_over:
 
         for event in pygame.event.get():
@@ -474,3 +471,72 @@ else:
 
         if game_over:
             pygame.time.wait(3000)
+
+# COMP VS COMP #
+if comp_vs_comp and not easy:
+    while not game_over:
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+
+        if turn == PLAYER:
+
+            chance = random.randint(0, 10)
+            col, minimax_score = minimax(
+                board, 1, -np.inf, np.inf, True)
+
+            if chance < 4:
+                # Find a peg to remove
+                if len(get_valid_removals(board, PLAYER_PIECE)) > 0:
+                    col = get_valid_removals(board, PLAYER_PIECE)[0]
+                    remove_bottom_peg(board, col)
+
+                    print_board(board)
+                    draw_board(board)
+
+                    turn += 1
+                    turn = turn % 2
+
+            elif is_valid_location(board, col):
+                # try to drop a peg in a random open spot
+                row = get_next_open_row(board, col)
+                drop_piece(board, row, col, PLAYER_PIECE)
+
+                if winning_move(board, AI_PIECE):
+                    label = myfont.render("Dumb AI wins!", 1, RED)
+                    screen.blit(label, (40, 10))
+                    game_over = True
+
+                print_board(board)
+                draw_board(board)
+
+                turn += 1
+                turn = turn % 2
+
+        if turn == AI and not game_over:
+
+            col, minimax_score = minimax(
+                board, 5, -np.inf, np.inf, True)
+
+            if is_valid_location(board, col):
+                row = get_next_open_row(board, col)
+                drop_piece(board, row, col, AI_PIECE)
+
+                if winning_move(board, AI_PIECE):
+                    label = myfont.render("Smart AI wins!", 1, YELLOW)
+                    screen.blit(label, (40, 10))
+                    game_over = True
+
+                print_board(board)
+                draw_board(board)
+
+                turn += 1
+                turn = turn % 2
+
+        pygame.time.wait(400)
+
+        if game_over:
+            pygame.time.wait(3000)
+
+print("Game complete, {} nodes searched.".format(nodes_searched))
