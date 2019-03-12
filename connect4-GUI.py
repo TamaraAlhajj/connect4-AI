@@ -3,6 +3,8 @@ import sys
 import pygame
 import random
 
+#### MACROS ####
+
 RED = (237, 37, 78)
 YELLOW = (249, 220, 92)
 BLUE = (34, 108, 224)
@@ -33,15 +35,17 @@ board = np.zeros((ROWS, COLS))
 running = True
 
 
-## General functions ##
+## GENERAL FUNCTIONS ##
 
 def valid_move(board, col):
     return board[ROWS-1][col] == EMPTY
+
 
 def get_open_row(board, col):
     for row in range(ROWS):
         if(board[row, col] == EMPTY):
             return row
+
 
 def remove_bottom_peg(board, col):
     top = get_open_row(board, col)
@@ -50,11 +54,13 @@ def remove_bottom_peg(board, col):
     # edge case handler
     board[ROWS-1, col] = 0
 
+
 def make_move(board, row, col, piece):
     board[row][col] = piece
 
+
 def check_win(board, piece):
-    
+
     # Check horizontal locations for win
     for c in range(COLS-3):
         for r in range(ROWS):
@@ -109,6 +115,7 @@ def check_win(board, piece):
     return False
     """
 
+
 def print_board(board):
     # CMD output
     # orient so 0,0 is at the bottom left
@@ -133,54 +140,68 @@ def draw_board(board):
                     c*SQUARE+SQUARE/2), HEIGHT-int(r*SQUARE+SQUARE/2)), RADIUS)
     pygame.display.update()
 
-## AI Functions ##
+#### AI FUNCTIONS ####
+
 
 def evaluate_window(window, piece):
-	score = 0
+    score = 0
 
-	if(window.count(piece) == 4):
-		score += 100
-	elif(window.count(piece) == 3 and window.count(EMPTY) == 1):
-		score += 5
-	elif(window.count(piece) == 2 and window.count(EMPTY) == 2):
-		score += 2
+    opponent = PLAYER
+    if(piece == PLAYER):
+        opponent = AI
 
-	return score
+    if(window.count(piece) == 4):
+        score += 100
+    elif(window.count(piece) == 3 and window.count(EMPTY) == 1):
+        score += 5
+    elif(window.count(piece) == 2 and window.count(EMPTY) == 2):
+        score += 2
+
+    if(window.count(opponent) == 4):
+        score -= 10
+    elif(window.count(opponent) == 3 and window.count(EMPTY) == 1):
+        score -= 4
+    elif(window.count(opponent) == 2 and window.count(EMPTY) == 2):
+        score -= 1
+    
+    return score
+
 
 def score_position(board, piece):
-	score = 0
+    score = 0
 
-	## Score center column, which are best 
-	center_array = [int(i) for i in list(board[:, COLS//2])]
-	center_count = center_array.count(piece)
-	score += center_count * 3
+    # Score center column, which are best
+    center_array = [int(i) for i in list(board[:, COLS//2])]
+    center_count = center_array.count(piece)
+    score += center_count * 3
 
-	## Score Horizontal
-	for r in range(ROWS):
-		row_array = [int(i) for i in list(board[r,:])]
-		for c in range(COLS-3):
-			window = row_array[c:c+WINDOW_LENGTH]
-			score += evaluate_window(window, piece)
+    # Score Horizontal
+    for r in range(ROWS):
+        row_array = [int(i) for i in list(board[r, :])]
+        for c in range(COLS-3):
+            window = row_array[c:c+WINDOW_LENGTH]
+            score += evaluate_window(window, piece)
 
-	## Score Vertical
-	for c in range(COLS):
-		col_array = [int(i) for i in list(board[:,c])]
-		for r in range(ROWS-3):
-			window = col_array[r:r+WINDOW_LENGTH]
-			score += evaluate_window(window, piece)
+    # Score Vertical
+    for c in range(COLS):
+        col_array = [int(i) for i in list(board[:, c])]
+        for r in range(ROWS-3):
+            window = col_array[r:r+WINDOW_LENGTH]
+            score += evaluate_window(window, piece)
 
-	## Score diagonals
-	for r in range(ROWS-3):
-		for c in range(COLS-3):
-			window = [board[r+i][c+i] for i in range(WINDOW_LENGTH)]
-			score += evaluate_window(window, piece)
+    # Score diagonals
+    for r in range(ROWS-3):
+        for c in range(COLS-3):
+            window = [board[r+i][c+i] for i in range(WINDOW_LENGTH)]
+            score += evaluate_window(window, piece)
 
-	for r in range(ROWS-3):
-		for c in range(COLS-3):
-			window = [board[r+3-i][c+i] for i in range(WINDOW_LENGTH)]
-			score += evaluate_window(window, piece)
+    for r in range(ROWS-3):
+        for c in range(COLS-3):
+            window = [board[r+3-i][c+i] for i in range(WINDOW_LENGTH)]
+            score += evaluate_window(window, piece)
 
-	return score
+    return score
+
 
 def get_valid_moves(board):
     valid_locations = []
@@ -188,6 +209,7 @@ def get_valid_moves(board):
         if(valid_move(board, col)):
             valid_locations.append(col)
     return valid_locations
+
 
 def best_move(board, piece):
     valid_locations = get_valid_moves(board)
@@ -199,28 +221,75 @@ def best_move(board, piece):
         temp_board = board.copy()
         make_move(temp_board, row, col, piece)
         score = score_position(temp_board, piece)
-        
+
         if(score > best_score):
             best_score = score
             best_col = col
 
-    return best_col 
+    return best_col
 
-def minimax(node, depth, maximizingPlayer):
-    """ if depth = 0 or node is a terminal node then
-        return the heuristic value of node
-    if maximizingPlayer then
-        value := −∞
-        for each child of node do
-            value := max(value, minimax(child, depth − 1, FALSE))
-        return value
-    else (* minimizing player *)
-        value := +∞
-        for each child of node do
-            value := min(value, minimax(child, depth − 1, TRUE))
-        return value """
 
-## Game play logic ##
+def is_terminal_node(board):
+    return (check_win(board, PLAYER) or check_win(board, AI) or len(get_valid_moves(board)) == 0)
+
+
+def minimax(board, depth, alpha, beta, maximizingPlayer):
+
+    valid_locations = get_valid_moves(board)
+
+    if(depth == 0 or is_terminal_node(board)):
+        # return the heuristic value of node
+        if(is_terminal_node(board)):
+            if check_win(board, AI):
+                return (None, 1000000000) # billion
+            elif check_win(board, PLAYER):
+                return (None, -1000000000)
+            else:  # Game is over, no more valid moves
+                return (None, 0) # - billion
+
+        else: # if(depth == 0):
+            return (None, score_position(board, AI))
+
+    if(maximizingPlayer):
+        value = -np.inf
+        column = random.choice(valid_locations)
+
+        for col in valid_locations:
+            row = get_open_row(board, col)
+            temp = board.copy()
+            make_move(temp, row, col, AI)
+            new_score = minimax(temp, depth-1, alpha, beta, False)[1]
+
+            if(new_score > value):
+                value = new_score
+                column = col
+                
+            alpha = max(alpha, value)
+            if(alpha >= beta):
+                break
+
+        return column, value
+
+    else:  # Minimizing player
+        value = np.inf
+        column = random.choice(valid_locations)
+
+        for col in valid_locations:
+            row = get_open_row(board, col)
+            temp = board.copy()
+            make_move(temp, row, col, PLAYER)
+            new_score = minimax(temp, depth-1, alpha, beta, True)[1]
+
+            if new_score < value:
+                value = new_score
+                column = col
+
+            beta = min(beta, value)
+            if alpha >= beta:
+                break
+        return column, value
+
+#### GAME LOGIC ####
 
 option = input("Option to remove pegs? (yes): ")
 if(option.upper() == 'YES'):
@@ -243,10 +312,10 @@ while running:
         if(event.type == pygame.QUIT):
             running = False
 
-        if(event.type == pygame.MOUSEMOTION and TURN):
+        """ if(event.type == pygame.MOUSEMOTION and TURN):
             pygame.draw.rect(screen, BLACK, (0, 0, WIDTH, SQUARE))
             x = event.pos[0]
-            pygame.draw.circle(screen, RED, (x, int(SQUARE/2)), RADIUS)
+            pygame.draw.circle(screen, RED, (x, int(SQUARE/2)), RADIUS) """
 
         if(event.type == pygame.KEYDOWN):
             print(event.unicode, event.key)
@@ -291,13 +360,12 @@ while running:
 
     if(not TURN and running):
 
-        # pick random column between 0 and 6 inclusive
-        #move = random.randint(0, COLS - 1)
-
-        move = best_move(board, AI)
+        # move = random.randint(0, COLS - 1)
+        # move = best_move(board, AI)
+        col, minimax_score = minimax(
+            board, 5, -np.inf, np.inf, True)  # initial call
 
         if(valid_move(board, move)):
-            pygame.time.wait(500)
             row = get_open_row(board, move)
             make_move(board, row, move, AI)
 
@@ -308,8 +376,8 @@ while running:
 
             TURN = not TURN
 
-    print_board(board)
-    draw_board(board)
+        print_board(board)
+        draw_board(board)
 
     if(not running):
         pygame.time.wait(3000)
