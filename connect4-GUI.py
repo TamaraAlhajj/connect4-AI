@@ -33,11 +33,24 @@ size = (width, height)
 RADIUS = int(SQUARESIZE/2 - 5)
 
 option_to_remove = True
+comp_vs_comp = False
+h1 = True
+game_over = False
+board = np.zeros((ROW_COUNT, COLUMN_COUNT))
 
+#### SETUP ####
 
-def create_board():
-    board = np.zeros((ROW_COUNT, COLUMN_COUNT))
-    return board
+game_type = int(input("How many AIs? Type 1 or 2: "))
+if game_type == 2:
+    comp_vs_comp = True
+
+option = input("Type no if you don't want the option to remove, else any key: ")
+if option_to_remove == "no":
+    option_to_remove = False
+
+heuristic = int(input("Offensive (1) or defensive (2) heuristic? "))
+if heuristic == 2:
+    h1 == False
 
 
 def drop_piece(board, row, col, piece):
@@ -45,10 +58,8 @@ def drop_piece(board, row, col, piece):
 
 
 def remove_bottom_peg(board, col):
-    for i in range(1, 5):
+    for i in range(0, 5):
         board[i, col] = board[i+1, col]
-    board[ROW_COUNT-1, col] = 0
-
 
 def is_valid_location(board, col):
     return not np.all(board[:, col])
@@ -81,7 +92,7 @@ def winning_move(board, piece):
             if board[r][c] == piece and board[r+1][c] == piece and board[r+2][c] == piece and board[r+3][c] == piece:
                 return True
 
-    # Check positively sloped diaganols
+    # Check positively sloped diagonals
     for c in range(COLUMN_COUNT-3):
         for r in range(ROW_COUNT-3):
             if board[r][c] == piece and board[r+1][c+1] == piece and board[r+2][c+2] == piece and board[r+3][c+3] == piece:
@@ -105,44 +116,40 @@ def evaluate_window(window, piece):
     elif window.count(piece) == 3 and window.count(EMPTY) == 1:
         score += 10
     elif window.count(piece) == 2 and window.count(EMPTY) == 2:
-        score += 2
+        score += 4
 
-    if window.count(opp_piece) == 4:
-        score -= 50
-    elif window.count(opp_piece) == 3 and window.count(EMPTY) == 1:
-        score -= 8
-    elif window.count(opp_piece) == 2 and window.count(EMPTY) == 2:
-        score -= 1
+    if window.count(opp_piece) == 3 and window.count(EMPTY) == 1:
+        score -= 6
 
     return score
 
 
-def evaluate_remove(window, piece):
+def defence(window, piece):
     score = 0
     opp_piece = PLAYER_PIECE
     if piece == PLAYER_PIECE:
         opp_piece = AI_PIECE
 
     if window.count(piece) == 4:
-        score -= 100
+        score += 100
     elif window.count(piece) == 3 and window.count(EMPTY) == 1:
-        score -= 10
+        score += 10
     elif window.count(piece) == 2 and window.count(EMPTY) == 2:
-        score -= 2
+        score += 2
 
     if window.count(opp_piece) == 4:
         score -= 50
     elif window.count(opp_piece) == 3 and window.count(EMPTY) == 1:
-        score += 10
+        score -= 9
     elif window.count(opp_piece) == 2 and window.count(EMPTY) == 2:
-        score += 50
+        score -= 1
 
     return score
 
 
 def score_position(board, piece):
     score = 0
-    remove = 0
+    block = 0
 
     # Score center column
     center_array = [int(i) for i in list(board[:, COLUMN_COUNT//2])]
@@ -155,6 +162,7 @@ def score_position(board, piece):
         for c in range(COLUMN_COUNT-3):
             window = row_array[c:c+WINDOW_LENGTH]
             score += evaluate_window(window, piece)
+            block += defence(window, piece)
 
     # Score Vertical
     for c in range(COLUMN_COUNT):
@@ -162,22 +170,24 @@ def score_position(board, piece):
         for r in range(ROW_COUNT-3):
             window = col_array[r:r+WINDOW_LENGTH]
             score += evaluate_window(window, piece)
-            remove += evaluate_remove(window, piece)
+            block += defence(window, piece)
 
-    # Score positive sloped diagonal
+    # Score diagonals
     for r in range(ROW_COUNT-3):
         for c in range(COLUMN_COUNT-3):
             window = [board[r+i][c+i] for i in range(WINDOW_LENGTH)]
             score += evaluate_window(window, piece)
+            block += defence(window, piece)
 
     for r in range(ROW_COUNT-3):
         for c in range(COLUMN_COUNT-3):
             window = [board[r+3-i][c+i] for i in range(WINDOW_LENGTH)]
             score += evaluate_window(window, piece)
+            block += defence(window, piece)
 
-    if score > remove:
-        return score, False
-    return remove, True
+    if h1:
+        return score
+    return block
 
 
 def is_terminal_node(board):
@@ -186,57 +196,38 @@ def is_terminal_node(board):
 
 def minimax(board, depth, alpha, beta, maximizingPlayer):
     valid_locations = get_valid_locations(board)
-    valid_removals = get_valid_removals(board, AI_PIECE)
     is_terminal = is_terminal_node(board)
 
     if depth == 0 or is_terminal:
         if is_terminal:
             if winning_move(board, AI_PIECE):
-                return (None, 100000000000000, False)
+                return (None, 100000000000000)
             elif winning_move(board, PLAYER_PIECE):
-                return (None, -10000000000000, False)
+                return (None, -10000000000000)
             else:  # Game is over, no more valid moves
-                return (valid_removals[0], 0, True)
+                return (None, 0)
         else:  # Depth is zero
-            return (None, score_position(board, AI_PIECE)[0], score_position(board, AI_PIECE)[1])
+            return (None, score_position(board, AI_PIECE))
 
     if maximizingPlayer:
         value = -np.inf
         column = random.choice(valid_locations)
+        
+        for col in valid_locations:
+            row = get_next_open_row(board, col)
+            b_copy = board.copy()
+            drop_piece(b_copy, row, col, AI_PIECE)
+            new_score = minimax(b_copy, depth-1, alpha, beta, False)[1]
 
-        if random.randint(0, 10) < 9 and option_to_remove:  # start removing randomly
-            for col in valid_removals:
-                row = 0
-                b_copy = board.copy()
-                remove_bottom_peg(b_copy, col)
-                new_score = minimax(b_copy, depth-1, alpha, beta, False)[1]
+            if new_score > value:
+                value = new_score
+                column = col
+            alpha = max(alpha, value)
 
-                if new_score > value:
-                    value = new_score
-                    column = col
-                alpha = max(alpha, value)
+            if alpha >= beta:
+                break
 
-                if alpha >= beta:
-                    break
-
-            return column, value, True
-
-        else:
-            for col in valid_locations:
-                row = get_next_open_row(board, col)
-                b_copy = board.copy()
-                drop_piece(b_copy, row, col, AI_PIECE)
-                new_score = minimax(b_copy, depth-1, alpha, beta, False)[1]
-
-                if new_score > value:
-                    value = new_score
-                    column = col
-                alpha = max(alpha, value)
-
-                if alpha >= beta:
-                    break
-
-            return column, value, False
+        return column, value
 
     else:  # Minimizing player
         value = np.inf
@@ -313,23 +304,10 @@ def draw_board(board):
     pygame.display.update()
 
 
-game_type = int(input("How many AIs? Type 1 or 2: "))
-comp_vs_comp = False
-if game_type == 2:
-    comp_vs_comp = True
-
-option = input(
-    "Type no if you don't want the option to remove, else any key: ")
-if option_to_remove == "no":
-    option_to_remove = False
-
-board = create_board()
-print_board(board)
-game_over = False
-
 pygame.init()
 
 screen = pygame.display.set_mode(size)
+print_board(board)
 draw_board(board)
 pygame.display.update()
 
@@ -352,11 +330,33 @@ if not comp_vs_comp:
                         screen, RED, (posx, int(SQUARESIZE/2)), RADIUS)
 
             pygame.display.update()
+            
+            if turn == PLAYER:
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pygame.draw.rect(screen, BLACK, (0, 0, width, SQUARESIZE))
-                
-                if turn == PLAYER:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_d:
+                        pygame.draw.rect(screen, BLACK, (0, 0, width, SQUARESIZE))
+
+                        col = int(math.floor(posx/SQUARESIZE))
+
+                        if can_remove(board, col, PLAYER_PIECE):
+                            row = 0
+                            remove_bottom_peg(board, col)
+
+                            if winning_move(board, PLAYER_PIECE):
+                                label = myfont.render("Player wins!", 1, RED)
+                                screen.blit(label, (40, 40))
+                                game_over = True
+
+                            turn += 1
+                            turn = turn % 2
+
+                            print_board(board)
+                            draw_board(board)
+
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    pygame.draw.rect(screen, BLACK, (0, 0, width, SQUARESIZE))
+
                     posx = event.pos[0]
                     col = int(math.floor(posx/SQUARESIZE))
 
@@ -379,7 +379,7 @@ if not comp_vs_comp:
             col, minimax_score = minimax(board, 5, -np.inf, np.inf, True)
 
             if is_valid_location(board, col):
-                # pygame.time.wait(500)
+
                 row = get_next_open_row(board, col)
                 drop_piece(board, row, col, AI_PIECE)
 
@@ -408,9 +408,21 @@ else:
 
         if turn == PLAYER:
 
+            chance = random.randint(0,10)
             col = random.randint(0, COLUMN_COUNT-1)
 
-            if is_valid_location(board, col):
+            if chance < 4:
+                if len(get_valid_removals(board,PLAYER_PIECE)) > 0:
+                    col = get_valid_removals(board, PLAYER_PIECE)[0]
+                    remove_bottom_peg(board, col)
+                    
+                    print_board(board)
+                    draw_board(board)
+
+                    turn += 1
+                    turn = turn % 2
+
+            elif is_valid_location(board, col):
                 row = get_next_open_row(board, col)
                 drop_piece(board, row, col, PLAYER_PIECE)
 
@@ -427,16 +439,18 @@ else:
 
             elif option_to_remove and can_remove(board, col, PLAYER_PIECE):
                 remove_bottom_peg(board, col)
+                print_board(board)
+                draw_board(board)
+
+                turn += 1
+                turn = turn % 2
 
         if turn == AI and not game_over:
 
-            col, minimax_score, remove = minimax(
+            col, minimax_score = minimax(
                 board, 5, -np.inf, np.inf, True)
 
-            if remove and option_to_remove:
-                remove_bottom_peg(board, col)
-
-            if is_valid_location(board, col) and not remove:
+            if is_valid_location(board, col):
                 row = get_next_open_row(board, col)
                 drop_piece(board, row, col, AI_PIECE)
 
