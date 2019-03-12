@@ -33,6 +33,7 @@ size = (width, height)
 
 RADIUS = int(SQUARESIZE/2 - 5)
 
+h1 = False
 
 game_over = False
 option_to_remove = True
@@ -174,10 +175,12 @@ def winning_move(board, piece):
                     return True
 
             # Check negatively sloped diagonals
-            if c < COLUMN_COUNT - 3 and r > 3:
-                if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
-                    return True
-
+            try:
+                if c < COLUMN_COUNT - 3:
+                    if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
+                        return True
+            except IndexError:
+                pass
 
 def offence(window, piece):
     # Heuristic 1
@@ -194,7 +197,7 @@ def offence(window, piece):
         score += 2
 
     if window.count(opp_piece) == 3 and window.count(EMPTY) == 1:
-        score -= 4
+        score -= 3
 
     return score
 
@@ -578,6 +581,7 @@ if not bad_setup:
 
     # COMP VS COMP #
     elif comp_vs_comp_perf:
+        #global h1
         while not game_over:
 
             for event in pygame.event.get():
@@ -589,7 +593,7 @@ if not bad_setup:
                 game_over = True
 
             elif turn == PLAYER:
-
+                h1 = True
                 col, minimax_score = minimax(
                     board, 5, -np.inf, np.inf, True)
 
@@ -610,7 +614,7 @@ if not bad_setup:
                     turn = turn % 2
 
             if turn == AI and not game_over:
-
+                h1 = False
                 col, minimax_score = minimax(
                     board, 5, -np.inf, np.inf, True)
 

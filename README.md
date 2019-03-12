@@ -51,8 +51,8 @@ For the AI it was too costly to check with removal capabilities at each level, s
 The number of nodes searched were consistently in the thousands. This is due to the fact that node expansion is based on the production system and the depth of the alpha-beta search.
 Currently, the depth is bound at 5 levels. However, with a lower cut off, say 3, the number of nodes searched were in the hundreds.
 Moreover, when the Average AI is playing with the Smart AI, they *both* use the alpha-beta search so this can magnify the number of nodes searched to the tens of thousands.
-Amazingly, yet understandably, when both smart AIs play the nodes searched can reach 64505!
-As for the heuristics, the number of nodes searched seem to be the same for both, however it is hard to make a direct comparison with so many game play possibilities.
+Amazingly, yet understandably, when both smart AIs play the nodes searched can reach 64505! Even more
+As for the heuristics, the number of nodes searched seem to be more for defence due to tendency to block rather than win quick, however it is hard to make a direct comparison with so many game play possibilities.
 
 ## Improvements
 
