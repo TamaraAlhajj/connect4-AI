@@ -4,13 +4,10 @@ import pygame
 import sys
 import math
 
-#### MACROS ####
-
-RED = (237, 37, 78)
-YELLOW = (249, 220, 92)
-BLUE = (34, 108, 224)
-BLACK = (27, 23, 37)
-WHITE = (255, 255, 255)
+BLUE = (0,0,255)
+BLACK = (0,0,0)
+RED = (255,0,0)
+YELLOW = (255,255,0)
 
 ROW_COUNT = 6
 COLUMN_COUNT = 7
@@ -23,15 +20,6 @@ PLAYER_PIECE = 1
 AI_PIECE = 2
 
 WINDOW_LENGTH = 4
-
-SQUARESIZE = 100
-
-width = COLUMN_COUNT * SQUARESIZE
-height = (ROW_COUNT+1) * SQUARESIZE
-
-size = (width, height)
-
-RADIUS = int(SQUARESIZE/2 - 5)
 
 def create_board():
 	board = np.zeros((ROW_COUNT,COLUMN_COUNT))
@@ -146,7 +134,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
 		else: # Depth is zero
 			return (None, score_position(board, AI_PIECE))
 	if maximizingPlayer:
-		value = -np.inf
+		value = -math.inf
 		column = random.choice(valid_locations)
 		for col in valid_locations:
 			row = get_next_open_row(board, col)
@@ -162,7 +150,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
 		return column, value
 
 	else: # Minimizing player
-		value = np.inf
+		value = math.inf
 		column = random.choice(valid_locations)
 		for col in valid_locations:
 			row = get_next_open_row(board, col)
@@ -214,16 +202,20 @@ def draw_board(board):
 				pygame.draw.circle(screen, YELLOW, (int(c*SQUARESIZE+SQUARESIZE/2), height-int(r*SQUARESIZE+SQUARESIZE/2)), RADIUS)
 	pygame.display.update()
 
-game_type = int(input("How many AIs? 1 or 2"))
-comp_vs_comp = True
-if game_type == 1:
-    comp_vs_comp = False
-
 board = create_board()
 print_board(board)
 game_over = False
 
 pygame.init()
+
+SQUARESIZE = 100
+
+width = COLUMN_COUNT * SQUARESIZE
+height = (ROW_COUNT+1) * SQUARESIZE
+
+size = (width, height)
+
+RADIUS = int(SQUARESIZE/2 - 5)
 
 screen = pygame.display.set_mode(size)
 draw_board(board)
@@ -231,7 +223,7 @@ pygame.display.update()
 
 myfont = pygame.font.SysFont("monospace", 75)
 
-turn = PLAYER
+turn = random.randint(PLAYER, AI)
 
 while not game_over:
 
@@ -276,7 +268,7 @@ while not game_over:
 
 		#col = random.randint(0, COLUMN_COUNT-1)
 		#col = pick_best_move(board, AI_PIECE)
-		col, minimax_score = minimax(board, 5, -np.inf, np.inf, True)
+		col, minimax_score = minimax(board, 5, -math.inf, math.inf, True)
 
 		if is_valid_location(board, col):
 			#pygame.time.wait(500)
