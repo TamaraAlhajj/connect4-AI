@@ -1,6 +1,6 @@
 # Connect 4
 
-** MiniMax with Alpha-Beta Pruning **
+*MiniMax with Alpha-Beta Pruning*
 
 **Author:** Tamara Alhajj
 
