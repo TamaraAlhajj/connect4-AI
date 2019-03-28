@@ -1,8 +1,8 @@
-# Assignment 2 - Connect 4
+# Connect 4
+
+** MiniMax with Alpha-Beta Pruning **
 
 **Author:** Tamara Alhajj
-
-**Student ID:** 100948027
 
 ## Overview
 
@@ -65,7 +65,3 @@ A similar heuristic to this is the history heuristic, which saves the best moves
 Essentially, the history heuristic is the killer with memorization.
 
 An improvement I plan to implement in the future is peg removal for the smart AIs. I am curious to see whether this would lead to an endless game.
-
-## Acknowledgements
-
-Thank you to [Keith Galli](https://www.youtube.com/playlist?list=PLFCB5Dp81iNV_inzM-R9AKkZZlePCZdtV "Youtube Playlist") for his video series of connect 4 graphics using pygame. This aided me greatly in implementing the game play with a pygame GUI.
