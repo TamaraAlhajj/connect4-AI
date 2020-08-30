@@ -1,15 +1,10 @@
 # Connect 4
 
-*MiniMax with Alpha-Beta Pruning*
-
-**Author:** Tamara Alhajj
-
 ## Overview
 
-An informative explanation of the traditional game can be found at: https://en.wikipedia.org/wiki/Connect_Four
+This is a python implementation of connect 4 using a CLI to setup and pygame for the GUI. An informative explanation of the traditional game can be found at: https://en.wikipedia.org/wiki/Connect_Four. The implementation for this game allows for the conventional game play as well as additional features, including an unbeatable AI using MiniMax with Alpha-Beta Pruning.
 
-This is a python implementation of connect 4 using a CLI to setup and pygame for the GUI.
-My implementation for this game allows for the conventional game play as well as additional features. These include:
+_Feature Set_
 
     - The option to remove your players piece from bottom peg
     - Smart AI vs Human
